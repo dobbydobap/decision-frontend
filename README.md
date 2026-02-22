@@ -1,73 +1,46 @@
-# React + TypeScript + Vite
+# Decision Engine (Frontend UI)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Problem Statement
+While the human brain is highly capable, it suffers from severe "analysis paralysis" and emotional bias when confronted with multi-variable decisions. This frontend serves as the interactive dashboard for the Decision Engine API, allowing users to visually construct complex matrices, assign weighted criteria, and mathematically evaluate their dilemmas to find the optimal, objective choice.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## System Architecture
 
-## React Compiler
+This application is built as a Single Page Application (SPA) using modern React standards.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+* **Framework:** React 18 + Vite (for lightning-fast HMR and optimized builds).
+* **Language:** TypeScript for strict type-safety across components.
+* **Routing:** `react-router-dom` for seamless, client-side navigation without page reloads.
+* **HTTP Client:** Axios, configured with global interceptors to automatically attach JWT tokens to secure requests.
+* **State Management:** React's native `useState` and `useEffect` hooks manage the complex, nested state of the decision matrix.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## API Integration Strategy
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+The UI communicates with a dedicated Node/Express backend. 
+* A central `apiClient` (`src/api/client.ts`) acts as the single source of truth for backend communication.
+* **Authentication Flow:** On successful login, the JWT is stored in `localStorage`. The Axios interceptor intercepts every subsequent outbound request and injects the `Authorization: Bearer <token>` header, ensuring the user only ever sees their own data.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Tradeoffs
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. **Inline CSS vs. Component Libraries:** For the MVP, inline CSS was used to rapidly prototype the layout and data flow. Moving forward, this will be stripped out in favor of a utility-first framework like Tailwind CSS for scalable design.
+2. **Client-Side vs. Server-Side Rendering:** Chose a Vite SPA over Next.js SSR. Since this is an authenticated, highly interactive dashboard (rather than a public-facing blog requiring SEO), a standard React SPA provides the best developer experience and sufficient performance.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Challenges Faced
+
+* **Managing Deeply Nested State:** The `DecisionDetail` matrix requires rendering an object that contains arrays of Options, arrays of Criteria, and cross-referenced Scores. 
+* **Database Constraint Handling:** The UI had to be designed to gracefully catch and display custom backend errors (e.g., preventing a user from accidentally scoring "Toyota" for "Mileage" twice) without crashing the application.
+
+---
+
+## Future Improvements
+
+* **UI/UX Overhaul:** Implement a complete design system with a dark-mode-first approach.
+* **Data Visualization:** Add radar charts (spider charts) to visually map out why the winning option beat the runner-ups across different criteria.
+* **Drag and Drop:** Allow users to reorder criteria priority using a drag-and-drop interface.
